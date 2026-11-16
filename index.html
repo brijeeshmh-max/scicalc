@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SciCalc – Free Online Scientific Calculator</title>
+<meta name="description" content="A free online scientific calculator with trig, logs, powers, memory variables and a quadratic and cubic equation solver. Works on phones and laptops.">
+<meta name="theme-color" content="#25282b">
+<meta property="og:title" content="SciCalc – Free Online Scientific Calculator">
+<meta property="og:description" content="Scientific calculator with an equation solver (quadratic and cubic). Free, no install.">
+<meta property="og:type" content="website">
+<style>
+:root{--page:#dcdad4;--ink:#4a4d50;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--page:#17181a;--ink:#a9acb0;color-scheme:dark}}
+:root[data-theme="dark"]{--page:#17181a;--ink:#a9acb0;color-scheme:dark}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;min-height:100%;background:var(--page);color:var(--ink);font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 12px}
+.calc{width:100%;max-width:372px;background:linear-gradient(#34383c,#25282b);border-radius:22px 22px 30px 30px;padding:14px 14px 20px;box-shadow:0 18px 40px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.08);user-select:none;-webkit-user-select:none}
+.brand{display:flex;justify-content:space-between;align-items:baseline;color:#c9ccd0;margin-bottom:8px;font-size:12px}
+.brand b{font-size:15px;letter-spacing:.4px}
+.lcd{background:#b8c3a4;border-radius:8px;border:3px solid #131518;padding:5px 10px 8px;color:#1d2219;font-family:"Courier New",ui-monospace,monospace;box-shadow:inset 0 2px 6px rgba(0,0,0,.35)}
+.ind{display:flex;gap:10px;font-size:10px;font-weight:700;min-height:13px}
+.ex{font-size:clamp(15px,5.2vw,20px);height:26px;white-space:pre;overflow:hidden}
+.cur{display:inline-block;width:2px;height:1em;background:currentColor;vertical-align:-2px;margin:0 -1px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.cur{animation:none}}
+.res{font-size:30px;font-weight:700;text-align:right;height:38px;overflow:hidden;white-space:nowrap}
+.res.err{font-size:20px;line-height:38px}
+.pad{display:grid;gap:7px 6px;margin-top:14px}
+.g6{grid-template-columns:repeat(6,1fr)}
+.g5{grid-template-columns:repeat(5,1fr);margin-top:12px}
+.k{display:flex;flex-direction:column;align-items:center;min-width:0}
+.lab{display:flex;justify-content:space-between;width:100%;font-size:9.5px;font-weight:700;height:12px;padding:0 2px}
+.lab .s{color:#f0c52d}.lab .a{color:#ff6b61}
+.b{font:inherit;font-size:12px;font-weight:600;border:0;cursor:pointer;width:100%;height:30px;padding:0;border-radius:7px 7px 12px 12px;background:linear-gradient(#5a5f65,#41454a);color:#eceef0;box-shadow:0 2px 0 #111214;touch-action:manipulation}
+.b:active{transform:translateY(1px);box-shadow:0 1px 0 #111214}
+.b:focus-visible{outline:2px solid #6cb4ff;outline-offset:2px}
+.b.n{background:linear-gradient(#f2f1eb,#cfcdc5);color:#1c1d1f;font-size:17px;height:38px}
+.b.p{background:linear-gradient(#80878e,#60676e);color:#fff;font-size:17px;height:38px}
+.b.x{background:linear-gradient(#4f86c8,#365f96);color:#fff;height:38px}
+.b.q{height:38px;font-size:17px}
+.b.sh{background:linear-gradient(#f0c52d,#c59d12);color:#222}
+.b.al{background:linear-gradient(#ff7a70,#d4463d);color:#fff}
+.b.on{box-shadow:0 0 0 2px #fff,0 2px 0 #111214}
+.hint{max-width:372px;margin:14px 4px 0;font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<main class="calc" aria-label="Scientific calculator">
+  <div class="brand"><b>SciCalc</b><span>Scientific</span></div>
+  <div class="lcd" aria-live="polite">
+    <div class="ind" id="ind"></div>
+    <div class="ex" id="ex"></div>
+    <div class="res" id="res">0</div>
+  </div>
+  <div class="pad g6" id="top"></div>
+  <div class="pad g5" id="bot"></div>
+</main>
+<p class="hint">SHIFT (yellow) and ALPHA (red) pick the small labels above each key. To save a value: SHIFT, RCL, then a variable key (A–F, X, Y, M). Keyboard works too: digits, + − * / ( ), Enter, Backspace, Esc, arrows. Equation solver: press ALPHA then MODE to cycle EQN2 (quadratic), EQN3 (cubic) and off. Type each coefficient, press = after each, then = again for the next root.</p>
+<script>
+const TOP=[
+['shift','SHIFT','','','sh'],['alpha','ALPHA','','','al'],['left','◄','','',''],['right','►','','',''],['mode','MODE','CLR','EQN',''],['sd','S⇔D','','Y',''],
+['sq','x²','√','',''],['cube','x³','∛','',''],['pow','xʸ','ʸ√x','',''],['log','log','10ˣ','',''],['ln','ln','eˣ','',''],['abs','Abs','','B',''],
+['sin','sin','sin⁻¹','D',''],['cos','cos','cos⁻¹','E',''],['tan','tan','tan⁻¹','F',''],['hyp','hyp','','C',''],['inv','x⁻¹','x!','',''],['ncr','nCr','nPr','',''],
+['lp','(','','',''],['rp',')','','X',''],['rcl','RCL','STO','',''],['neg','(−)','','A',''],['mp','M+','M−','M',''],['pct','%','','','']];
+const BOT=[
+['d7','7','','','n'],['d8','8','','','n'],['d9','9','','','n'],['del','DEL','','','x'],['ac','AC','','','x'],
+['d4','4','','','n'],['d5','5','','','n'],['d6','6','','','n'],['mul','×','','','p'],['div','÷','','','p'],
+['d1','1','','','n'],['d2','2','','','n'],['d3','3','','','n'],['add','+','','','p'],['sub','−','','','p'],
+['d0','0','','','n'],['dot','.','','','n'],['exp','×10ˣ','π','','q'],['ans','Ans','e','','q'],['eq','=','','','p']];
+const INS={sq:['²','√('],cube:['³','∛('],pow:['^(','^(1÷'],log:['log(','10^('],ln:['ln(','e^('],abs:['Abs('],sin:['sin('],cos:['cos('],tan:['tan('],inv:['⁻¹','!'],ncr:['C','P'],lp:['('],rp:[')'],neg:['−'],pct:['%'],mul:['×'],div:['÷'],add:['+'],sub:['−'],dot:['.'],exp:['×10^','π'],ans:['Ans','e']};
+for(let d=0;d<10;d++)INS['d'+d]=[''+d];
+const OPS=new Set(['pow','sq','cube','inv','ncr','pct','mul','div','add','sub']);
+const AL={neg:'A',abs:'B',hyp:'C',sin:'D',cos:'E',tan:'F',rp:'X',sd:'Y',mp:'M'};
+const NAMES=['asinh','acosh','atanh','sinh','cosh','tanh','asin','acos','atan','sin','cos','tan','log','ln','Abs'];
+const TOK=/(asinh\(|acosh\(|atanh\(|sinh\(|cosh\(|tanh\(|asin\(|acos\(|atan\(|sin\(|cos\(|tan\(|log\(|ln\(|Abs\(|Ans|⁻¹|×10\^|\^\(1÷|10\^\(|e\^\(|\^\(|√\(|∛\()$/;
+const $=s=>document.querySelector(s);
+const st={eq:0,co:[],roots:null,rIdx:0,e:'',p:0,sh:0,al:0,hy:0,mode:'DEG',ans:0,rv:0,done:false,res:'',err:'',pend:'',frac:false,V:{A:0,B:0,C:0,D:0,E:0,F:0,X:0,Y:0,M:0}};
+
+function build(el,list){list.forEach(([id,l,s,a,c])=>{const d=document.createElement('div');d.className='k';d.innerHTML='<div class="lab"><span class="s">'+s+'</span><span class="a">'+a+'</span></div><button class="b '+c+'" data-k="'+id+'">'+l+'</button>';el.append(d)})}
+build($('#top'),TOP);build($('#bot'),BOT);
+document.querySelector('.calc').addEventListener('click',e=>{const b=e.target.closest('button[data-k]');if(b)press(b.dataset.k)});
+
+/* ---------- maths ---------- */
+const mth=()=>{throw new Error('Math ERROR')},syn=()=>{throw new Error('Syntax ERROR')};
+const chk=v=>{if(!isFinite(v)||isNaN(v))mth();return v};
+const chkI=(n,r)=>{if(n<0||r<0||n!==Math.floor(n)||r!==Math.floor(r)||r>n)mth()};
+const fact=n=>{if(n<0||n!==Math.floor(n)||n>170)mth();let r=1;for(let k=2;k<=n;k++)r*=k;return r};
+const nPr=(n,r)=>{chkI(n,r);let p=1;for(let k=0;k<r;k++)p*=n-k;return p};
+const nCr=(n,r)=>{chkI(n,r);r=Math.min(r,n-r);let c=1;for(let k=1;k<=r;k++)c=c*(n-r+k)/k;return Math.round(c)};
+
+function calc(s){
+  let i=0;
+  const ang=x=>st.mode==='DEG'?x*Math.PI/180:st.mode==='GRA'?x*Math.PI/200:x;
+  const unang=x=>st.mode==='DEG'?x*180/Math.PI:st.mode==='GRA'?x*200/Math.PI:x;
+  const z=x=>Math.abs(x)<1e-13?0:x;
+  const F={
+    sin:x=>z(Math.sin(ang(x))),cos:x=>z(Math.cos(ang(x))),
+    tan:x=>{if(Math.abs(Math.cos(ang(x)))<1e-13)mth();return z(Math.tan(ang(x)))},
+    asin:x=>{if(Math.abs(x)>1)mth();return unang(Math.asin(x))},
+    acos:x=>{if(Math.abs(x)>1)mth();return unang(Math.acos(x))},
+    atan:x=>unang(Math.atan(x)),
+    sinh:Math.sinh,cosh:Math.cosh,tanh:Math.tanh,asinh:Math.asinh,
+    acosh:x=>{if(x<1)mth();return Math.acosh(x)},
+    atanh:x=>{if(Math.abs(x)>=1)mth();return Math.atanh(x)},
+    log:x=>{if(x<=0)mth();return Math.log10(x)},
+    ln:x=>{if(x<=0)mth();return Math.log(x)},
+    '√':x=>{if(x<0)mth();return Math.sqrt(x)},'∛':Math.cbrt,Abs:Math.abs};
+  const num=()=>{let j=i;while(/[0-9.]/.test(s[j]||''))j++;const t=s.slice(i,j);if(!t||t==='.'||t.split('.').length>2)syn();i=j;return parseFloat(t)};
+  function expr(){let v=term();while(s[i]==='+'||s[i]==='−'){const o=s[i++],r=term();v=o==='+'?v+r:v-r}return v}
+  function term(){let v=un();for(;;){const c=s[i];
+    if(c==='×'||c==='÷'){i++;const r=un();if(c==='÷'){if(r===0)mth();v/=r}else v*=r}
+    else if(c!==undefined&&/[0-9.(πe√∛A-FXYMa-z]/.test(c))v*=un();
+    else break}return v}
+  function un(){if(s[i]==='−'){i++;return -un()}if(s[i]==='+'){i++;return un()}return perm()}
+  function perm(){let v=pow();while(s[i]==='P'||s[i]==='C'){const o=s[i++],r=pow();v=o==='P'?nPr(v,r):nCr(v,r)}return v}
+  function pow(){const b=post();if(s[i]==='^'){i++;const e=un();return chk(Math.pow(b,e))}return b}
+  function post(){let v=prim();for(;;){const c=s[i];
+    if(c==='!'){i++;v=fact(v)}else if(c==='²'){i++;v*=v}else if(c==='³'){i++;v=v*v*v}
+    else if(c==='⁻'&&s[i+1]==='¹'){i+=2;if(v===0)mth();v=1/v}
+    else if(c==='%'){i++;v/=100}else break}return v}
+  function prim(){
+    const c=s[i];if(c===undefined)syn();
+    if(/[0-9.]/.test(c))return num();
+    if(c==='('){i++;const v=expr();if(s[i]===')')i++;return v}
+    if(c==='π'){i++;return Math.PI}
+    if(c==='√'||c==='∛'){i++;return chk(F[c](prim()))}
+    if(s.startsWith('Ans',i)){i+=3;return st.ans}
+    for(const n of NAMES){if(s.startsWith(n+'(',i)){i+=n.length+1;const v=expr();if(s[i]===')')i++;return chk(F[n](v))}}
+    if(c==='e'){i++;return Math.E}
+    if(/[A-FXYM]/.test(c)){i++;return st.V[c]}
+    syn();
+  }
+  const v=expr();if(i<s.length)syn();return chk(v);
+}
+function fmt(x){if(x===0)return'0';const r=parseFloat(x.toPrecision(10)),a=Math.abs(r);
+  if(a>=1e10||a<1e-6)return r.toExponential().replace('e+','×10^').replace('e-','×10^-').replace(/-/g,'−');return String(r).replace('-','−')}
+function toFrac(x){if(Number.isInteger(x))return null;const sg=x<0?'−':'',a=Math.abs(x);let h1=1,h0=0,k1=0,k0=1,b=a;
+  for(let n=0;n<20;n++){const f=Math.floor(b),h=f*h1+h0,k=f*k1+k0;if(k>9999)return null;h0=h1;h1=h;k0=k1;k1=k;
+    if(Math.abs(a-h/k)<1e-9*Math.max(1,a))return sg+h+'/'+k;if(b-f===0)break;b=1/(b-f)}return null}
+
+/* ---------- state + display ---------- */
+function cur(){if(st.done||!st.e)return st.ans;try{return calc(st.e)}catch(x){st.err=x.message;draw();return null}}
+function showE(){const e=st.e,p=st.p,L=22;let a=0;if(e.length>L)a=Math.min(Math.max(0,p-14),e.length-L);
+  const s=e.slice(a,a+L),q=p-a;return(a?'…':'')+s.slice(0,q)+'<i class="cur"></i>'+s.slice(q)}
+function draw(){
+  const I=[];if(st.sh)I.push('S');if(st.al)I.push('A');if(st.V.M)I.push('M');if(st.hy)I.push('HYP');if(st.eq)I.push('EQN'+st.eq);if(st.pend)I.push(st.pend);I.push(st.mode);
+  $('#ind').innerHTML=I.map(t=>'<span>'+t+'</span>').join('');
+  $('#ex').innerHTML=st.eq?(st.roots?'x'+(st.rIdx+1)+'=':'abcd'[st.co.length]+'=')+(st.roots?'':showE()):showE();
+  const r=$('#res');let rt,sm=!!st.err;
+  if(st.err)rt=st.err;
+  else if(st.eq){if(st.roots){const o=st.roots[st.rIdx];rt=(st.frac&&o.v!==null&&toFrac(o.v))||o.s}else{rt=st.co.map((v,i)=>'abcd'[i]+'='+fmt(v)).join(' ');sm=true}}
+  else rt=(st.frac&&toFrac(st.rv))||st.res||'0';
+  if(rt.length>11)sm=true;
+  r.textContent=rt;r.classList.toggle('err',sm);
+  [['shift',st.sh],['alpha',st.al],['hyp',st.hy]].forEach(([k,v])=>$('[data-k="'+k+'"]').classList.toggle('on',!!v));
+}
+function put(t,op){if(st.roots)return;
+  if(st.done){st.done=false;st.res='';st.frac=false;st.e=op?'Ans':'';st.p=st.e.length}
+  st.err='';st.e=st.e.slice(0,st.p)+t+st.e.slice(st.p);st.p+=t.length;draw();
+}
+function evalNow(){
+  if(!st.e)return;
+  try{const v=calc(st.e);st.ans=v;st.rv=v;st.res=fmt(v);st.err='';st.done=true;st.frac=false}
+  catch(x){st.err=x.message==='Math ERROR'?'Math ERROR':'Syntax ERROR';st.res='';st.done=false}
+  draw();
+}
+const clean=x=>Math.abs(x)<1e-11?0:x;
+function cplx(re,im){re=clean(re);const a=Math.abs(im);
+  if(a<1e-9*Math.max(1,Math.abs(re)))return[{s:fmt(re),v:re},{s:fmt(re),v:re}];
+  const t=re===0?'':fmt(re),i=fmt(a)+'i';
+  return[{s:t+(t?'+':'')+i,v:null},{s:t+'−'+i,v:null}]}
+function solveEq(c){
+  if(c.length===3){const[a,b,k]=c,D=b*b-4*a*k;
+    if(D>=0){const q=Math.sqrt(D);return[(-b+q)/(2*a),(-b-q)/(2*a)].map(clean).sort((p,r)=>r-p).map(v=>({s:fmt(v),v}))}
+    return cplx(-b/(2*a),Math.sqrt(-D)/(2*a))}
+  const b=c[1]/c[0],cc=c[2]/c[0],d=c[3]/c[0],sh=b/3,p=cc-b*b/3,q=2*b*b*b/27-b*cc/3+d,D=q*q/4+p*p*p/27;
+  if(Math.abs(D)<=1e-10*(q*q/4+Math.abs(p*p*p/27))){const t=p===0?[0,0,0]:[3*q/p,-3*q/(2*p),-3*q/(2*p)];return t.map(v=>clean(v-sh)).sort((a,b)=>b-a).map(v=>({s:fmt(v),v}))}
+  if(D>0){const sq=Math.sqrt(D),u=Math.cbrt(-q/2+sq),v=Math.cbrt(-q/2-sq),t=u+v,x1=clean(t-sh);
+    return[{s:fmt(x1),v:x1},...cplx(-t/2-sh,Math.abs(u-v)*Math.sqrt(3)/2)]}
+  let t;
+  if(p===0)t=[0,0,0];
+  else{const m=2*Math.sqrt(-p/3),th=Math.acos(Math.max(-1,Math.min(1,3*q/(p*m))))/3;t=[0,1,2].map(k=>m*Math.cos(th-2*Math.PI*k/3))}
+  return t.map(v=>clean(v-sh)).sort((a,b)=>b-a).map(v=>({s:fmt(v),v}))}
+function eqEnter(){
+  if(st.roots){st.rIdx=(st.rIdx+1)%st.roots.length;return draw()}
+  let v=0;
+  if(st.e){try{v=calc(st.e)}catch(x){st.err=x.message;return draw()}}
+  if(!st.co.length&&v===0){st.err='Math ERROR';return draw()}
+  st.co.push(v);st.e='';st.p=0;st.err='';
+  if(st.co.length>st.eq){st.roots=solveEq(st.co);st.rIdx=0;st.frac=false}
+  draw();
+}
+function press(id){
+  const sh=st.sh,al=st.al;
+  if(id==='shift'){st.sh=sh?0:1;st.al=0;return draw()}
+  if(id==='alpha'){st.al=al?0:1;st.sh=0;return draw()}
+  if(st.pend){const m=st.pend,v=AL[id];st.pend='';st.sh=st.al=0;
+    if(v){if(m==='STO'){const x=cur();if(x!==null)st.V[v]=x}else{const n=st.V[v],t=fmt(n);put(n<0?'('+t+')':t)}}
+    return draw()}
+  st.sh=st.al=0;
+  if(al&&AL[id])return put(AL[id]);
+  switch(id){
+    case'left':case'right':{const d=id==='left'?-1:1;
+      if(st.roots){st.rIdx=(st.rIdx+d+st.roots.length)%st.roots.length;return draw()}
+      if(st.eq&&d<0&&st.e===''&&st.co.length){st.e=fmt(st.co.pop());st.p=st.e.length;st.err='';return draw()}
+      st.done=false;st.err='';st.p=Math.max(0,Math.min(st.e.length,st.p+d));return draw()}
+    
+    case'mode':
+      if(sh){st.e='';st.p=0;st.res='';st.err='';st.done=false;st.ans=0;st.hy=0;st.eq=0;st.co=[];st.roots=null;for(const k in st.V)st.V[k]=0}
+      else if(al){st.eq=st.eq===2?3:st.eq===3?0:2;st.co=[];st.roots=null;st.rIdx=0;st.e='';st.p=0;st.res='';st.err='';st.done=false}
+      else st.mode=st.mode==='DEG'?'RAD':st.mode==='RAD'?'GRA':'DEG';
+      return draw();
+    case'sd':if(st.done||st.roots){st.frac=!st.frac}return draw();
+    case'hyp':st.hy=st.hy?0:1;if(sh)st.ih=1;return draw();
+    case'rcl':st.pend=sh?'STO':'RCL';return draw();
+    case'mp':{const x=cur();if(x!==null)st.V.M+=sh?-x:x;return draw()}
+    case'del':{st.done=false;st.res='';st.err='';const left=st.e.slice(0,st.p),m=left.match(TOK),n=m?m[0].length:1;
+      if(st.p>0){st.e=left.slice(0,left.length-n)+st.e.slice(st.p);st.p-=n}return draw()}
+    case'ac':if(st.eq&&st.roots){st.roots=null;st.co=[];st.rIdx=0}st.e='';st.p=0;st.res='';st.err='';st.done=false;st.frac=false;st.hy=0;st.ih=0;return draw();
+    case'eq':return st.eq?eqEnter():evalNow();
+  }
+  const T=INS[id];if(!T)return;
+  let t;
+  if(id==='sin'||id==='cos'||id==='tan'){t=(sh||st.ih?'a':'')+id+(st.hy?'h':'')+'(';st.hy=0;st.ih=0}
+  else t=sh&&T[1]?T[1]:T[0];
+  put(t,OPS.has(id));
+}
+addEventListener('keydown',e=>{
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  const M={'+':'add','-':'sub','*':'mul','/':'div','(':'lp',')':'rp','.':'dot','Enter':'eq','=':'eq','Backspace':'del','Escape':'ac','ArrowLeft':'left','ArrowRight':'right','^':'pow','%':'pct'};
+  const id=/^[0-9]$/.test(e.key)?'d'+e.key:M[e.key];
+  if(id){e.preventDefault();press(id)}
+});
+draw();
+</script>
+</body>
+</html>
